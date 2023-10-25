@@ -40,6 +40,7 @@ unsigned int uiDht_Val;
 unsigned char Dht_Hmd[21];
 unsigned char Dht_Temp[21];
 
+extern int vUSART_PPM;
 void display()
 {
 		switch(menuStatus){
@@ -79,7 +80,7 @@ void DHT_Proc(void)
 			uiDht_Val = dht11_read();
 			sprintf((char *)Dht_Hmd,"Hmd : %2d.%d%%",uiDht_Val >> 24,(uiDht_Val >> 16)&0xff);
 			OLED_ShowString(0,0,Dht_Hmd,16,1);
-			sprintf((char *)Dht_Temp,"Temp: %2d.%mdC",(uiDht_Val >> 8)&0xff,uiDht_Val&0xff);
+			sprintf((char *)Dht_Temp,"Temp: %2d.%dC",(uiDht_Val >> 8)&0xff,uiDht_Val&0xff);
 			OLED_ShowString(0,16,Dht_Temp,16,1);		
 	
 }
@@ -88,12 +89,15 @@ int main(void)
 {
 	u8 key;
 	u8 i=0;
-	
+	int OLED_PPM;
+	uint8_t TEMP_I=0;
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); 
+	uart_init();
 	delay_init();
 	OLED_Init();
 	OLED_ColorTurn(0);//0正常显示，1 反色显示
   OLED_DisplayTurn(0);//0正常显示 1 屏幕翻转显示
-	
+	OLED_PPM=0;
 	SysTick_Init(72);
 	LED_Init();
 	KEY_Init();
@@ -102,6 +106,13 @@ int main(void)
 	
 	while(1)
 	{
+		if(OLED_PPM!=vUSART_PPM)
+		{
+			OLED_PPM=vUSART_PPM;
+		}
+		OLED_ShowString(0,32,"PPM :",16,1);
+		OLED_ShowNum(48,32,vUSART_PPM,3,16,1);
+		OLED_ShowString(72,32,"um/m^3",16,1);		
 		i++;
 		if(i%100==0)
 		{
